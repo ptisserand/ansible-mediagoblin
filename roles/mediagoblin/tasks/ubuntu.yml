@@ -1,0 +1,16 @@
+- name: Update cache
+  apt: update_cache=yes
+  sudo: yes
+
+- name: Install dependencies
+  apt: name={{item}} state=installed
+  with_items:
+    - git-core 
+    - python 
+    - python-dev 
+    - python-lxml
+    - python-imaging 
+    - python-virtualenv
+    - nginx-full
+  sudo: yes
+

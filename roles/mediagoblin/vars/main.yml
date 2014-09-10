@@ -1,0 +1,4 @@
+top_directory: /srv/mediagoblin
+deploy_directory: "{{ top_directory }}/mediagoblin"
+user: mediagoblin
+git_uri: git://gitorious.org/mediagoblin/mediagoblin.git

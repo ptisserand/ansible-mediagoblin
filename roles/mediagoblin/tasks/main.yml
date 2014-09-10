@@ -1,0 +1,54 @@
+- include: ubuntu.yml
+  when: "'{{ ansible_distribution | lower }}' == 'ubuntu'"
+
+- name: Create mediagoblin user
+  user: name={{user}} system=yes state=present
+  sudo: yes
+
+- name: Create deploy directory
+  file: name={{deploy_directory}} state=directory owner={{user}}
+  sudo: yes
+
+- name: Checkout git
+  git: repo={{git_uri}} dest={{deploy_directory}} accept_hostkey=yes
+  sudo: yes
+  sudo_user: "{{ user }}"
+
+- name: git submodules
+  shell: 
+    git submodule update --init --recursive 
+    chdir="{{deploy_directory}}"
+    creates="{{deploy_directory}}/.gitmodules"
+  sudo: yes
+  sudo_user: "{{ user }}"
+
+
+- name: Create virtualenv
+  shell: 
+    virtualenv --python=python2 --system-site-packages . 
+    chdir="{{deploy_directory}}"
+    creates="{{deploy_directory}}/bin/python"
+  sudo: yes
+  sudo_user: "{{ user }}"
+
+- name: Build mediagoblin
+  shell:
+    ./bin/python setup.py develop
+    chdir="{{deploy_directory}}"
+    creates="{{deploy_directory}}/mediagoblin.egg-info"
+  sudo: yes
+  sudo_user: "{{ user }}"
+
+- name: Install flup
+  easy_install: 
+    name=flup
+    virtualenv="{{deploy_directory}}"
+  sudo: yes
+  sudo_user: "{{ user }}"
+
+- name: Update DB
+  shell:
+    ./bin/gmg dbupdate
+    chdir="{{deploy_directory}}"
+  sudo: yes
+  sudo_user: "{{ user }}"
